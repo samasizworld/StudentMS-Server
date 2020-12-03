@@ -1,0 +1,12 @@
+{
+  "username":"postgres",
+  "password":"japan123",
+  "database":"sms",
+  "localhost":"localhost",
+  "pool":{
+      "max":5,
+      "min":0,
+      "idle":10000
+  },
+  "databasePlatform":"postgres"
+}
