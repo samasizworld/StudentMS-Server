@@ -8,6 +8,8 @@ app.use(express.json());
 //Routing Middleware
 const StudentRoutes = require('./routes/studentRoutes');
 app.use('/api/students', StudentRoutes);
+const SubjectRoutes = require('./routes/subjectRoutes');
+app.use('/api/subjects', SubjectRoutes);
 
 //sequelize instance import
 const sequelize = require('./config/database');
