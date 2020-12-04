@@ -20,6 +20,7 @@ module.exports = (sequelize) => {
       address: {
         type: DataTypes.STRING,
       },
+      datecreated: { type: DataTypes.DATE },
       datemodified: {
         type: DataTypes.DATE,
       },

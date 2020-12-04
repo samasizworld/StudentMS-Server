@@ -9,7 +9,13 @@ const addSubject = asyncHandler(async (req, res) => {
   const { subjectname, subjectcode } = req.body;
   const sub = await subject.create({ subjectname, subjectcode });
   if (sub) {
-    res.status(201).json({ sub });
+    res.status(201).json({
+      subjectId: sub.guid,
+      subjectName: sub.subjectname,
+      subjectCode: sub.subjectcode,
+      createdAt: sub.datecreated,
+      modifiedAt: sub.datemodified,
+    });
   } else {
     res.json({ message: 'Subject was unable to create' });
   }
@@ -19,17 +25,35 @@ const addSubject = asyncHandler(async (req, res) => {
 //routes - GET api/subjects
 //access -Public
 const getSubjects = asyncHandler(async (req, res) => {
-  const subjects = await subject.findAll();
-  res.json({ subjects });
+  const subjects = await subject.findAll({ where: { datedeleted: null } });
+  //custom
+  const subjectList = subjects.map((s) => {
+    return {
+      subjectId: s.guid,
+      subjectName: s.subjectname,
+      subjectCode: s.subjectcode,
+      createdAt: s.datecreated,
+      modifiedAt: s.datemodified,
+    };
+  });
+  res.json(subjectList);
 });
 
 //desc -get subject by guid
 //routes - GET api/subjects/:uuid
 //access -Public
 const getSubjectByUUID = asyncHandler(async (req, res) => {
-  const sub = await subject.findOne({ where: { guid: req.params.uuid } });
+  const sub = await subject.findOne({
+    where: { guid: req.params.uuid, datedeleted: null },
+  });
   if (sub) {
-    res.json({ sub });
+    res.json({
+      subjectId: sub.guid,
+      subjectName: sub.subjectname,
+      subjectCode: sub.subjectcode,
+      createdAt: sub.datecreated,
+      modifiedAt: sub.datemodified,
+    });
   } else {
     res
       .status(404)
@@ -42,13 +66,21 @@ const getSubjectByUUID = asyncHandler(async (req, res) => {
 //access -Public
 const updateSubject = asyncHandler(async (req, res) => {
   const { subjectname, subjectcode } = req.body;
-  const sub = await subject.findOne({ where: { guid: req.params.uuid } });
+  const sub = await subject.findOne({
+    where: { guid: req.params.uuid, datedeleted: null },
+  });
   if (sub) {
     sub.datemodified = new Date();
     sub.subjectname = subjectname;
     sub.subjectcode = subjectcode;
     const updatedSubject = await sub.save();
-    res.json({ updatedSubject });
+    res.json({
+      subjectId: updatedSubject.guid,
+      subjectName: updatedSubject.subjectname,
+      subjectCode: updatedSubject.subjectcode,
+      createdAt: updatedSubject.datecreated,
+      modifiedAt: updatedSubject.datemodified,
+    });
   } else {
     res.status(404).json({ message: 'Subject not found' });
   }
@@ -62,7 +94,8 @@ const deleteSubject = asyncHandler(async (req, res) => {
     where: { guid: req.params.uuid },
   });
   if (sub) {
-    await sub.destroy();
+    sub.datedeleted = new Date();
+    await sub.save();
     res.json({ message: 'Subject deleted successfully' });
   } else {
     res.json({ message: 'No Subject found' });

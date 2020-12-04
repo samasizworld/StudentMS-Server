@@ -17,7 +17,9 @@ module.exports = (sequelize) => {
       subjectcode: {
         type: DataTypes.STRING,
       },
-
+      datecreated: {
+        type: DataTypes.DATE,
+      },
       datemodified: {
         type: DataTypes.DATE,
       },
