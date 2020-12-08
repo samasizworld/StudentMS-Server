@@ -27,6 +27,6 @@ for (const modelDefiner of modelDefiners) {
   modelDefiner(sequelize); // pass sequelize instance to models defined in models file by invoking modelDefiner function
 }
 // We execute any extra setup after the models are defined, such as adding associations.
-applyAssociation(sequelize);
+applyAssociation(sequelize.models);
 
 module.exports = sequelize;

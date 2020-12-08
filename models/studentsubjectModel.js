@@ -11,21 +11,9 @@ module.exports = (sequelize) => {
       guid: {
         type: DataTypes.UUID,
       },
-      /* studentid: {
-        type: DataTypes.INTEGER,
-        references: {
-          model: 'student',
-          key: 'studentid', 
-        },
+      datecreated: {
+        type: DataTypes.DATE,
       },
-      subjectid: {
-        type: DataTypes.INTEGER,
-        references: {
-          model: 'subject',
-          key: 'subjectid',
-        },
-      },*/
-      datecreated: { type: DataTypes.DATE },
       datemodified: {
         type: DataTypes.DATE,
       },

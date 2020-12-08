@@ -27,6 +27,6 @@ module.exports = (sequelize) => {
         type: DataTypes.DATE,
       },
     },
-    { timestamps: false }
+    { timestamps: false, tableName: 'subjects' }
   );
 };

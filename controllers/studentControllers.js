@@ -1,6 +1,6 @@
 const { models } = require('../config/database');
 const asyncHandler = require('express-async-handler');
-const { student } = models;
+const { student, subject, studentsubject } = models;
 
 //desc - create student
 //route - POST /api/students
@@ -23,7 +23,15 @@ const createStudent = asyncHandler(async (req, res) => {
 //access - Public
 //routes GET /api/students
 const getAllStudents = asyncHandler(async (req, res) => {
-  const students = await student.findAll({ where: { datedeleted: null } });
+  const students = await student.findAll({
+    where: { datedeleted: null },
+    include: [
+      {
+        model: subject,
+        through: { attributes: ['datedeleted'], where: { datedeleted: null } },
+      },
+    ],
+  });
   //for custom object creation
   const studentList = students.map((s) => {
     return {
@@ -33,6 +41,13 @@ const getAllStudents = asyncHandler(async (req, res) => {
       address: s.address,
       createdAt: s.datecreated,
       modifiedAt: s.datemodified,
+      subjects: s.subjects.map((sub) => {
+        return {
+          subjectId: sub.guid,
+          subjectCode: sub.subjectcode,
+          subjectName: sub.subjectname,
+        };
+      }),
     };
   });
   res.json(studentList);
@@ -44,9 +59,18 @@ const getAllStudents = asyncHandler(async (req, res) => {
 const getStudentByUUID = asyncHandler(async (req, res) => {
   const std = await student.findOne({
     where: { guid: req.params.uuid, datedeleted: null },
+    include: [
+      {
+        model: subject,
+        through: {
+          attributes: ['datedeleted'],
+          where: { datedeleted: null },
+        },
+      },
+    ],
   });
   if (std) {
-    //custom objects
+    // custom objects
     res.json({
       studentId: std.guid,
       firstName: std.firstname,
@@ -54,6 +78,13 @@ const getStudentByUUID = asyncHandler(async (req, res) => {
       address: std.address,
       createdAt: std.datecreated,
       modifiedAt: std.datemodified,
+      subjects: std.subjects.map((sub) => {
+        return {
+          subjectId: sub.guid,
+          subjectCode: sub.subjectcode,
+          subjectName: sub.subjectname,
+        };
+      }),
     });
   } else {
     res
@@ -96,14 +127,24 @@ const updateStudent = asyncHandler(async (req, res) => {
 //routes Delete api/students/:uuid
 const deleteStudent = asyncHandler(async (req, res) => {
   const std = await student.findOne({
-    where: { guid: req.params.uuid },
+    where: { guid: req.params.uuid, datedeleted: null },
   });
   if (std) {
     std.datedeleted = new Date();
+
+    const stdsub = await studentsubject.findAll({
+      where: { studentid: std.studentid },
+    });
+    for (let i = 0; i < stdsub.length; i++) {
+      stdsub[i].datedeleted = new Date();
+      await stdsub[i].save();
+    }
+
     await std.save();
+
     res.json({ message: 'Student deleted successfully' });
   } else {
-    res.json({ message: 'No Student found' });
+    res.json({ message: 'Student Already deleted' });
   }
 });
 

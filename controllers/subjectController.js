@@ -1,5 +1,5 @@
 const sequelize = require('../config/database');
-const { subject } = sequelize.models;
+const { subject, student, studentsubject } = sequelize.models;
 const asyncHandler = require('express-async-handler');
 
 //desc -create subject
@@ -25,7 +25,20 @@ const addSubject = asyncHandler(async (req, res) => {
 //routes - GET api/subjects
 //access -Public
 const getSubjects = asyncHandler(async (req, res) => {
-  const subjects = await subject.findAll({ where: { datedeleted: null } });
+  const subjects = await subject.findAll({
+    where: { datedeleted: null },
+    include: [
+      {
+        model: student,
+       
+        through: {
+          attributes: ['datedeleted'],
+          where: { datedeleted: null },
+        },
+      },
+    ],
+  });
+
   //custom
   const subjectList = subjects.map((s) => {
     return {
@@ -34,6 +47,13 @@ const getSubjects = asyncHandler(async (req, res) => {
       subjectCode: s.subjectcode,
       createdAt: s.datecreated,
       modifiedAt: s.datemodified,
+      students: s.students.map((stu) => {
+        return {
+          studentId: stu.guid,
+          studentName: stu.firstname + stu.lastname,
+          address: stu.address,
+        };
+      }),
     };
   });
   res.json(subjectList);
@@ -45,6 +65,15 @@ const getSubjects = asyncHandler(async (req, res) => {
 const getSubjectByUUID = asyncHandler(async (req, res) => {
   const sub = await subject.findOne({
     where: { guid: req.params.uuid, datedeleted: null },
+    include: [
+      {
+        model: student,
+        through: {
+          attributes: [],
+          where:{datedeleted:null}
+        },
+      },
+    ],
   });
   if (sub) {
     res.json({
@@ -53,6 +82,13 @@ const getSubjectByUUID = asyncHandler(async (req, res) => {
       subjectCode: sub.subjectcode,
       createdAt: sub.datecreated,
       modifiedAt: sub.datemodified,
+      students: sub.students.map((stu) => {
+        return {
+          studentId: stu.guid,
+          studentName: stu.firstname + stu.lastname,
+          address: stu.address,
+        };
+      }),
     });
   } else {
     res
@@ -91,10 +127,18 @@ const updateSubject = asyncHandler(async (req, res) => {
 //access -Public
 const deleteSubject = asyncHandler(async (req, res) => {
   const sub = await subject.findOne({
-    where: { guid: req.params.uuid },
+    where: { guid: req.params.uuid, datedeleted: null },
   });
   if (sub) {
     sub.datedeleted = new Date();
+    const stdsub = await studentsubject.findAll({
+      where: { subjectid: sub.subjectid },
+    });
+    stdsub.forEach(async (s) => {
+      s.datedeleted = new Date();
+      await s.save();
+    });
+
     await sub.save();
     res.json({ message: 'Subject deleted successfully' });
   } else {

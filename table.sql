@@ -1,6 +1,6 @@
 CREATE DATABASE sms;
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
+-- We have made database asper as models
 CREATE TABLE students( 
     studentid serial,
     guid UUID DEFAULT uuid_generate_v1(),
@@ -24,14 +24,15 @@ CREATE TABLE subjects(
 );
 
 CREATE TABLE studentsubjects(
-    studentsubjectid serial PRIMARY KEY,
+    studentsubjectid serial ,
     guid UUID DEFAULT uuid_generate_v1(),
     datecreated TIMESTAMP DEFAULT now(),
     datemodified TIMESTAMP,
     datedeleted TIMESTAMP,
-    studentid INT REFERENCES students (studentid),
-    subjectid INT REFERENCES subjects (subjectid)
-
+    "studentid" INT REFERENCES students (studentid) ,
+    "subjectid" INT REFERENCES subjects (subjectid) ,
+    UNIQUE(studentid,subjectid),
+    PRIMARY KEY (studentsubjectid)
 );
 
 /*Extra SQL functions*/
@@ -43,3 +44,21 @@ ALTER TABLE studentsubjects
 /* Not working with serial*/
 ALTER TABLE students 
     ALTER COLUMN studentid TYPE serial;
+
+-- function
+-- CREATE OR REPLACE FUNCTION update_association()
+--   RETURNS TRIGGER 
+--   LANGUAGE PLPGSQL
+--   AS
+-- $$
+-- BEGIN
+-- 	UPDATE studentsubjects SET datedeleted=now() ;
+
+-- END;
+-- $$
+
+-- CREATE TRIGGER updt_log
+--   AFTER UPDATE 
+--   ON students
+--   FOR EACH ROW
+--   EXECUTE PROCEDURE update_association();
