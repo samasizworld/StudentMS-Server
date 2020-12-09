@@ -14,6 +14,7 @@ const sequelize = new Sequelize(database, username, password, {
   host: localhost,
   dialect: databasePlatform,
   pool,
+  logging: false,
 });
 const modelDefiners = [
   require('../models/studentModel'),

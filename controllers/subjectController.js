@@ -30,7 +30,7 @@ const getSubjects = asyncHandler(async (req, res) => {
     include: [
       {
         model: student,
-       
+
         through: {
           attributes: ['datedeleted'],
           where: { datedeleted: null },
@@ -70,7 +70,7 @@ const getSubjectByUUID = asyncHandler(async (req, res) => {
         model: student,
         through: {
           attributes: [],
-          where:{datedeleted:null}
+          where: { datedeleted: null },
         },
       },
     ],
